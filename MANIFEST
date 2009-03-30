@@ -3,7 +3,6 @@ CHANGES
 GPL2.txt
 MANIFEST
 Makefile.PL
-NOTES
 lib/CPAN/ParseDistribution.pm
 t/Acme-BadExample-1.01.tar.gz
 t/Bad-Backticks-123.456.tar.gz
