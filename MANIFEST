@@ -30,3 +30,5 @@ t/pod-coverage.t
 t/pod.t
 t/ponie-2.tar.gz
 README
+t/Devel-Backtrace-0.11.tar.gz
+t/Module-Extract-VERSION-0.13.tar.gz

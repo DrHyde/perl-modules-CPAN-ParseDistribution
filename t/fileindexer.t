@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 29;
+use Test::More tests => 31;
 
 use CPAN::ParseDistribution;
 use File::Find::Rule;
@@ -20,60 +20,79 @@ foreach my $archive (File::Find::Rule->file()->name('XML-Tiny-DOM-1.0*')->in('t'
                 'XML::Tiny::DOM' => '1.0',
                 'XML::Tiny::DOM::Element' => '1.0'
             },
-            "can read $archive and find module versions"
+            "$archive: can read and find module versions"
         );
     }
 }
 
 print "# make sure all the methods work on a good distro\n";
 my $archive = CPAN::ParseDistribution->new('t/Class-CanBeA-1.2.tar.gz');
-ok($archive->dist() eq 'Class-CanBeA', 'dist() works (got '.$archive->dist().')');
-ok($archive->distversion() eq '1.2', 'distversion() works (got '.$archive->distversion().')');
-ok(!$archive->isdevversion(), 'isdevversion() works for a normal release');
-is_deeply($archive->{modules}, {}, '$dist->{modules} isn\'t populated until needed');
+ok($archive->dist() eq 'Class-CanBeA', "Class-CanBeA-1.2.tar.gz: dist() works");
+ok($archive->distversion() eq '1.2', "Class-CanBeA-1.2.tar.gz: distversion() works");
+ok(!$archive->isdevversion(), "Class-CanBeA-1.2.tar.gz: isdevversion() works");
+is_deeply($archive->{modules}, {}, "Class-CanBeA-1.2.tar.gz: \$dist->{modules} isn\'t populated until needed");
 is_deeply(
     $archive->modules(),
     { 'Class::CanBeA' => 1.2 },
-    "modules in /t/ and /inc/ etc are ignored"
+    "Class-CanBeA-1.2.tar.gz: modules in /t/ and /inc/ etc are ignored"
 );
 is_deeply(
     $archive->modules(),
     { 'Class::CanBeA' => 1.2 },
-    "calling ...->modules() twice works"
+    "Class-CanBeA-1.2.tar.gz: calling ...->modules() twice works"
 );
-ok($archive->{_modules_runs} == 1, "... but the time-consuming bit is only run once");
+ok($archive->{_modules_runs} == 1, "Class-CanBeA-1.2.tar.gz: ... but the time-consuming bit is only run once");
 
 $archive = CPAN::ParseDistribution->new('t/Class-CanBeA-1.2_1.tar.gz');
-ok($archive->isdevversion(), '_ in dist version implies dev release');
+ok($archive->isdevversion(), "Class-CanBeA-1.2_1.tar.gz: _ in dist version implies dev release");
+
+print "# Pay attention to MTEA.yml ...\n";
+$archive = CPAN::ParseDistribution->new('t/Devel-Backtrace-0.11.tar.gz');
+is_deeply(
+    $archive->modules(),
+    {
+        'Devel::DollarAt' => '0.02',
+        'Devel::Backtrace' => '0.11',
+        'Devel::Backtrace::Point' => '0.11'
+    },
+    'Devel-Backtrace-0.11.tar.gz: META.yml/no_index/directory SCALAR not fatal'
+);
+$archive = CPAN::ParseDistribution->new('t/Module-Extract-VERSION-0.13.tar.gz');
+is_deeply(
+    $archive->modules(),
+    { 'Module::Extract::VERSION' => 0.13 },
+    'Module-Extract-VERSION-0.13.tar.gz: META.yml/no_index/directory ARRAY'
+);
+
 
 print "# miscellaneous errors\n";
 $archive = CPAN::ParseDistribution->new('t/Bad-Permissions-123.456.tar.gz');
-is_deeply($archive->modules(), { 'Bad::Permissions' => 123.456}, "Bad perms handled OK");
+is_deeply($archive->modules(), { 'Bad::Permissions' => 123.456}, "Bad-Permissions-123.456.tar.gz: bad perms handled OK");
 $archive = CPAN::ParseDistribution->new('t/Bad-UseVars-123.456.tar.gz');
-is_deeply($archive->modules(), { 'Bad::UseVars' => 789}, "'use vars ...; \$VERSION =' handled OK");
+is_deeply($archive->modules(), { 'Bad::UseVars' => 789}, "Bad-UseVars-123.456.tar.gz: 'use vars ...; \$VERSION =' handled OK");
 
 print "# check that package\\nFoo is not indexed\n";
 $archive = CPAN::ParseDistribution->new('t/Bad-SplitPackage-234.567.tar.gz');
-is_deeply($archive->modules(), { 'NotSplit' => 234.567 }, 'package\nFoo; is not indexed');
+is_deeply($archive->modules(), { 'NotSplit' => 234.567 }, 'Bad-SplitPackage-234.567.tar.gz: package\nFoo; is not indexed');
 
 print "# various broken \$VERSIONs\n";
 { local $SIG{__WARN__} = sub {};
   $archive = CPAN::ParseDistribution->new('t/Foo-123.456.tar.gz');
-  is_deeply($archive->modules(), { 'Foo' => undef }, "Broken version == undef");
+  is_deeply($archive->modules(), { 'Foo' => undef }, "Foo-123.456.tar.gz: Broken version == undef");
 
   $archive = CPAN::ParseDistribution->new('t/Bad-Backticks-123.456.tar.gz');
-  is_deeply($archive->modules(), { 'Bad::Unsafe' => undef }, 'unsafe `$VERSION` isn\'t executed');
+  is_deeply($archive->modules(), { 'Bad::Unsafe' => undef }, 'Bad-Backticks-123.456.tar.gz: unsafe `$VERSION` isn\'t executed');
   $archive = CPAN::ParseDistribution->new('t/Bad-UseVersion-123.456.tar.gz');
   is_deeply(
       $archive->modules(),
       {
           'Bad::UseVersion'   => '0.0.3',
           'Bad::UseVersionQv' => '0.0.3'
-      }, 'use version; $VERSION = qv(...) works'
+      }, 'Bad-UseVersion-123.456.tar.gz: use version; $VERSION = qv(...) works'
   );
   $archive = CPAN::ParseDistribution->new('t/Acme-BadExample-1.01.tar.gz');
   is_deeply( $archive->modules(), { 'Acme::BadExample' => undef },
-      "Acme-BadExample-1.01 doesn't crash :-)");
+      "Acme-BadExample-1.01.tar.gz: doesn't crash :-)");
 }
 
 print "# Check that we ignore obviously silly files\n";
