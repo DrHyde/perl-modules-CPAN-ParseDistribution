@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 31;
+use Test::More tests => 32;
 
 use CPAN::ParseDistribution;
 use File::Find::Rule;
@@ -63,7 +63,12 @@ is_deeply(
     { 'Module::Extract::VERSION' => 0.13 },
     'Module-Extract-VERSION-0.13.tar.gz: META.yml/no_index/directory ARRAY'
 );
-
+$archive = CPAN::ParseDistribution->new('t/metadists/DBD-SQLite-Amalgamation-3.6.1.2.tar.gz');
+is_deeply(
+    $archive->modules(),
+    { 'DBD::SQLite::Amalgamation' => '3.6.1.2' },
+    'DBD-SQLite-Amalgamation-3.6.1.2.tar.gz: META.yml/no_index/file ARRAY'
+);
 
 print "# miscellaneous errors\n";
 $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Permissions-123.456.tar.gz');

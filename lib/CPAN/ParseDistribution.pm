@@ -214,26 +214,47 @@ sub modules {
         $self->{_modules_runs}++;
         my $tempdir = _unarchive($self->{file});
 
-	my $meta = (glob("$tempdir/*/META.yml"))[0];
-	my $ignore = join('|', qw(t inc xt));
+        my $meta = (glob("$tempdir/*/META.yml"))[0];
+        my $ignore = join('|', qw(t inc xt));
+        my %ignorefiles;
         if($meta && -e $meta) {
-	    my $yaml = eval { LoadFile($meta); };
-	    if(!$@ &&
-	        UNIVERSAL::isa($yaml, 'HASH') &&
-		exists($yaml->{no_index}) &&
-		UNIVERSAL::isa($yaml->{no_index}, 'HASH') &&
-		exists($yaml->{no_index}->{directory})
-	    ) {
-		if(UNIVERSAL::isa($yaml->{no_index}->{directory}, 'ARRAY')) {
-	            $ignore = join('|', $ignore, @{$yaml->{no_index}->{directory}});
-		} elsif(!ref($yaml->{no_index}->{directory})) {
-	            $ignore = join('|', $ignore, $yaml->{no_index}->{directory});
-		}
-	    }
-	}
+            my $yaml = eval { LoadFile($meta); };
+            if(!$@ &&
+                UNIVERSAL::isa($yaml, 'HASH') &&
+                exists($yaml->{no_index}) &&
+                UNIVERSAL::isa($yaml->{no_index}, 'HASH')
+            ) {
+                if(exists($yaml->{no_index}->{directory})) {
+                    if(eval { @{$yaml->{no_index}->{directory}} }) {
+                        $ignore = join('|', $ignore,
+                            @{$yaml->{no_index}->{directory}}
+                        );
+                    } elsif(!ref($yaml->{no_index}->{directory})) {
+                         $ignore .= '|'.$yaml->{no_index}->{directory}
+                    }
+                }
+                if(exists($yaml->{no_index}->{file})) {
+                    if(eval { @{$yaml->{no_index}->{file}} }) {
+                        %ignorefiles = map { $_, 1 }
+                            @{$yaml->{no_index}->{file}};
+                    } elsif(!ref($yaml->{no_index}->{file})) {
+                         $ignorefiles{$yaml->{no_index}->{file}} = 1;
+                    }
+                }
+            }
+            if(!$@ &&
+                UNIVERSAL::isa($yaml, 'HASH') &&
+                exists($yaml->{no_index}) &&
+                UNIVERSAL::isa($yaml->{no_index}, 'HASH') &&
+                (exists($yaml->{no_index}->{package}) ||
+                 exists($yaml->{no_index}->{namespace}))
+            ) { print Dumper($yaml); }
+        }
         # find modules
         my @PMs = grep {
-            $_ !~ m{^\Q$tempdir\E/[^/]+/($ignore)}
+            my $pm = $_;
+            $pm !~ m{^\Q$tempdir\E/[^/]+/($ignore)} &&
+            !grep { $pm =~ m{^\Q$tempdir\E/[^/]+/$_$} } (keys %ignorefiles)
         } File::Find::Rule->file()->name('*.pm')->in($tempdir);
         foreach my $PM (@PMs) {
             local $/ = undef;
@@ -306,6 +327,8 @@ test suite.
 =head1 SEE ALSO
 
 L<http://pause.perl.org/>
+
+L<dumpcpandist>
 
 =head1 AUTHOR, COPYRIGHT and LICENCE
 

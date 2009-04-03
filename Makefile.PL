@@ -7,5 +7,8 @@ WriteMakefile(
         'Archive::Zip' => 0,
         'File::Find::Rule' => 0,
 	'YAML' => 0.60
-    }
+    },
+    EXE_FILES => [qw(
+        bin/dumpcpandist
+    )],
 );
