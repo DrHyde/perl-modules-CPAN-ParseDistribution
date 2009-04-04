@@ -218,6 +218,7 @@ sub modules {
         my $ignore = join('|', qw(t inc xt));
         my %ignorefiles;
         my %ignorepackages;
+        my %ignorenamespaces;
         if($meta && -e $meta) {
             my $yaml = eval { LoadFile($meta); };
             if(!$@ &&
@@ -250,13 +251,15 @@ sub modules {
                          $ignorepackages{$yaml->{no_index}->{package}} = 1;
                     }
                 }
+                if(exists($yaml->{no_index}->{namespace})) {
+                    if(eval { @{$yaml->{no_index}->{namespace}} }) {
+                        %ignorenamespaces = map { $_, 1 }
+                            @{$yaml->{no_index}->{namespace}};
+                    } elsif(!ref($yaml->{no_index}->{namespace})) {
+                         $ignorenamespaces{$yaml->{no_index}->{namespace}} = 1;
+                    }
+                }
             }
-            if(!$@ &&
-                UNIVERSAL::isa($yaml, 'HASH') &&
-                exists($yaml->{no_index}) &&
-                UNIVERSAL::isa($yaml->{no_index}, 'HASH') &&
-                exists($yaml->{no_index}->{namespace})
-            ) { print Dumper($yaml); }
         }
         # find modules
         my @PMs = grep {
@@ -274,7 +277,10 @@ sub modules {
             # from PAUSE::pmfile::packages_per_pmfile in mldistwatch.pm
             if($PM =~ /\bpackage[ \t]+([\w\:\']+)\s*($|[};])/) {
                 my $module = $1;
-                $self->{modules}->{$module} = $version unless(exists($ignorepackages{$module}));
+                $self->{modules}->{$module} = $version unless(
+                    exists($ignorepackages{$module}) ||
+                    (grep { $module =~ /${_}::/ } keys %ignorenamespaces)
+                );
             }
         }
         rmtree($tempdir);

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 33;
+use Test::More tests => 34;
 
 use CPAN::ParseDistribution;
 use File::Find::Rule;
@@ -75,6 +75,19 @@ is_deeply(
     { 'Carp::REPL' => '0.14' },
     'Carp-REPL-0.14.tar.gz: META.yml/no_index/package ARRAY'
 );
+$archive = CPAN::ParseDistribution->new('t/metadists/Net-FSP-0.16.tar.gz');
+is_deeply(
+    $archive->modules(),
+    {
+        'Net::FSP::File' =>  undef,
+        'Net::FSP::Dir' =>  undef,
+        'Net::FSP::Util' =>  undef,
+        'Net::FSP' =>  0.16,
+        'Net::FSP::Entry' =>  undef
+    },
+    'Net-FSP-0.16.tar.gz: META.yml/no_index/namespace ARRAY'
+);
+$archive = CPAN::ParseDistribution->new('t/metadists/DBD-SQLite-Amalgamation-3.6.1.2.tar.gz');
 
 print "# miscellaneous errors\n";
 $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Permissions-123.456.tar.gz');
