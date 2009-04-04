@@ -8,10 +8,10 @@ use Data::Dumper;
 my $c = CPAN::ParseDistribution->new(shift);
 
 print "Distribution: ".$c->dist()." version ".$c->distversion()."\n\n";
-print "This is ".($c->isdevversion() ? ' ' : 'not ')."a developer release.\n\n";
+print "This is a developer-only release.\n\n" if($c->isdevversion());
 print "Contains modules:\n";
 my $m = $c->modules();
-print "  $_: version ".$m->{$_}."\n" foreach(keys %{$m});
+print "  $_: version ".(defined($m->{$_}) ? $m->{$_} : 'undef')."\n" foreach(keys %{$m});
 print "\n";
 
 =head1 NAME

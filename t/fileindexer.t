@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 33;
 
 use CPAN::ParseDistribution;
 use File::Find::Rule;
@@ -68,6 +68,12 @@ is_deeply(
     $archive->modules(),
     { 'DBD::SQLite::Amalgamation' => '3.6.1.2' },
     'DBD-SQLite-Amalgamation-3.6.1.2.tar.gz: META.yml/no_index/file ARRAY'
+);
+$archive = CPAN::ParseDistribution->new('t/metadists/Carp-REPL-0.14.tar.gz');
+is_deeply(
+    $archive->modules(),
+    { 'Carp::REPL' => '0.14' },
+    'Carp-REPL-0.14.tar.gz: META.yml/no_index/package ARRAY'
 );
 
 print "# miscellaneous errors\n";

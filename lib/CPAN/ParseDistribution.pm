@@ -217,6 +217,7 @@ sub modules {
         my $meta = (glob("$tempdir/*/META.yml"))[0];
         my $ignore = join('|', qw(t inc xt));
         my %ignorefiles;
+        my %ignorepackages;
         if($meta && -e $meta) {
             my $yaml = eval { LoadFile($meta); };
             if(!$@ &&
@@ -241,13 +242,20 @@ sub modules {
                          $ignorefiles{$yaml->{no_index}->{file}} = 1;
                     }
                 }
+                if(exists($yaml->{no_index}->{package})) {
+                    if(eval { @{$yaml->{no_index}->{package}} }) {
+                        %ignorepackages = map { $_, 1 }
+                            @{$yaml->{no_index}->{package}};
+                    } elsif(!ref($yaml->{no_index}->{package})) {
+                         $ignorepackages{$yaml->{no_index}->{package}} = 1;
+                    }
+                }
             }
             if(!$@ &&
                 UNIVERSAL::isa($yaml, 'HASH') &&
                 exists($yaml->{no_index}) &&
                 UNIVERSAL::isa($yaml->{no_index}, 'HASH') &&
-                (exists($yaml->{no_index}->{package}) ||
-                 exists($yaml->{no_index}->{namespace}))
+                exists($yaml->{no_index}->{namespace})
             ) { print Dumper($yaml); }
         }
         # find modules
@@ -266,7 +274,7 @@ sub modules {
             # from PAUSE::pmfile::packages_per_pmfile in mldistwatch.pm
             if($PM =~ /\bpackage[ \t]+([\w\:\']+)\s*($|[};])/) {
                 my $module = $1;
-                $self->{modules}->{$module} = $version;
+                $self->{modules}->{$module} = $version unless(exists($ignorepackages{$module}));
             }
         }
         rmtree($tempdir);
