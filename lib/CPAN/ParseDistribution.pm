@@ -214,7 +214,7 @@ sub modules {
         $self->{_modules_runs}++;
         my $tempdir = _unarchive($self->{file});
 
-        my $meta = (glob("$tempdir/*/META.yml"))[0];
+        my $meta = (File::Find::Rule->file()->name('META.yml')->in($tempdir))[0];
         my $ignore = join('|', qw(t inc xt));
         my %ignorefiles;
         my %ignorepackages;
