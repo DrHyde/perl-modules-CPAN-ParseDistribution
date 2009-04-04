@@ -35,3 +35,4 @@ t/baddists/Perl6-Pugs-6.2.13.tar.gz
 t/baddists/parrot-0.4.13.tar.gz
 t/metadists/DBD-SQLite-Amalgamation-3.6.1.2.tar.gz
 bin/dumpcpandist
+t/metadists/Carp-REPL-0.14.tar.gz
