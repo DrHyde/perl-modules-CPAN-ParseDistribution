@@ -9,7 +9,7 @@ WriteMakefile(
         'YAML' => 0.60,
         'File::Temp' => 0,
         'File::Path' => 0,
-        'version'    => 0,
+        # 'version'    => 0,
     },
     EXE_FILES => [qw(
         bin/dumpcpandist

@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.1';
+$VERSION = '1.11';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -17,7 +17,7 @@ use Archive::Zip;
 use YAML qw(LoadFile);
 use Safe;
 # safe to load, load now because it's commonly used for $VERSION
-use version;
+# use version;
 
 $Archive::Tar::DO_NOT_USE_PREFIX = 1;
 $Archive::Tar::CHMOD = 0;
@@ -146,6 +146,9 @@ sub _parse_version_safely {
             ), ($] >= 5.010 ? qw(say) : ()));
             $c->share_from(__PACKAGE__, [qw(qv)]);
             s/\buse\s+version\b.*?;//gs;
+            # qv broke some time between version.pm 0.74 and 0.82
+            # so just extract it and hope for the best
+            s/\bqv\s*\(\s*(["']?)([\d\.]+)\1\s*\)\s*/"$2"/;
             s/\buse\s+vars\b//g;
             $eval = qq{
                 local ${sigil}${var};
@@ -178,9 +181,9 @@ sub _parse_version_safely {
     }
     close $fh;
 
-    # version.pm objects come out is Safe::...::version objects,
-    # which breaks weirdly
-    bless($result, 'version') if(ref($result) =~ /::version$/);
+    # # version.pm objects come out as Safe::...::version objects,
+    # # which breaks weirdly
+    # bless($result, 'version') if(ref($result) =~ /::version$/);
     return $result;
 }
 
@@ -346,7 +349,7 @@ L<dumpcpandist>
 
 =head1 AUTHOR, COPYRIGHT and LICENCE
 
-Copyright 2009 David Cantrell E<lt>david@cantrell.org.ukE<gt>
+Copyright 2009-2010 David Cantrell E<lt>david@cantrell.org.ukE<gt>
 
 Contains code originally from the PAUSE by Andreas Koenig.
 

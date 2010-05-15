@@ -1,3 +1,6 @@
+1.11   2010-05-15    version.pm broke qv() sometime between 0.74 and 0.82,
+                     so add more regex craziness for the Safe compartment
+
 1.1    2009-04-04    Damn, I was hoping I could ignore META.yml, but no ...
                      Added dumpcpandist utility
 
