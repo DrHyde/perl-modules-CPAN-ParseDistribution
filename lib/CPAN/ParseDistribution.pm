@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.11';
+$VERSION = '1.2';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -34,7 +34,9 @@ of what modules it contains, the distribution name and version
 =head1 SYNOPSIS
 
     my $dist = CPAN::ParseDistribution->new(
-        'A/AU/AUTHORID/subdirectory/Some-Distribution-1.23.tar.gz'
+        'A/AU/AUTHORID/subdirectory/Some-Distribution-1.23.tar.gz',
+        use_tar => '/bin/tar',
+        ...
     );
     my $modules     = $dist->modules(); # hashref of modname => version
     my $distname    = $dist->dist();
@@ -45,12 +47,26 @@ of what modules it contains, the distribution name and version
 =head2 new
 
 Constructor, takes a single mandatory argument, which should be a tarball
-or zip file from the CPAN or BackPAN.
+or zip file from the CPAN or BackPAN, and some optional named arguments:
+
+=over
+
+=item use_tar
+
+The full path to 'tar'.  This is assumed to be GNU tar, and to be
+sufficiently well-endowed as to be able to support bzip2 files.
+Maybe I'll fix that at some point.  If this isn't specified, then
+Archive::Tar is used instead.
+
+You might want to use this if dealing with very large files, as
+Archive::Tar is rather profligate with memory.
+
+=back
 
 =cut
 
 sub new {
-    my($class, $file) = @_;
+    my($class, $file, %extra_params) = @_;
     die("file parameter is mandatory\n") unless($file);
     die("$file doesn't exist\n") if(!-e $file);
     die("$file looks like a ppm\n")
@@ -70,14 +86,15 @@ sub new {
         file    => $file,
         modules => {},
         dist    => $dist,
-        distversion => $distversion
+        distversion => $distversion,
+        extra_params => \%extra_params,
     }, $class;
 }
 
 # takes a filename, unarchives it, returns the directory it's been
 # unarchived into
 sub _unarchive {
-    my $file = shift;
+    my($file, %extra_params) = @_;
     my $olddir = getcwd();
     my $tempdir = tempdir(TMPDIR => 1);
     chdir($tempdir);
@@ -85,16 +102,26 @@ sub _unarchive {
         my $zip = Archive::Zip->new($file);
         $zip->extractTree() if($zip);
     } elsif($file =~ /\.(tar(\.gz)?|tgz)$/i) {
-        my $tar = Archive::Tar->new($file, 1);
-        $tar->extract() if($tar);
+        if($extra_params{use_tar}) {
+            system(
+                $extra_params{use_tar},
+                (($file =~ /gz$/) ? 'xzf' : 'xf'),
+                $file
+            );
+            system("chmod -R u+r *"); # tar might preserve unreadable perms
+        } else {
+            my $tar = Archive::Tar->new($file, 1);
+            $tar->extract() if($tar);
+        }
     } else {
-    # } elsif($file =~ /(\.tbz|\.tar\.bz2)$/i) {
-        open(my $fh, '-|', qw(bzip2 -dc), $file) || die("Can't unbzip2\n");
-        my $tar = Archive::Tar->new($fh);
-        $tar->extract() if($tar);
-    # } elsif($file =~ /\.tar$/) {
-    #     my $tar = Archive::Tar->new($file);
-    #     $tar->extract();
+        if($extra_params{use_tar}) {
+            system( $extra_params{use_tar}, 'xjf', $file);
+            system("chmod -R u+r *");
+        } else {
+            open(my $fh, '-|', qw(bzip2 -dc), $file) || die("Can't unbzip2\n");
+            my $tar = Archive::Tar->new($fh);
+            $tar->extract() if($tar);
+        }
     }
     chdir($olddir);
     return $tempdir;
@@ -215,7 +242,7 @@ sub modules {
     my $self = shift;
     if(!(keys %{$self->{modules}})) {
         $self->{_modules_runs}++;
-        my $tempdir = _unarchive($self->{file});
+        my $tempdir = _unarchive($self->{file}, %{$self->{extra_params}});
 
         my $meta = (File::Find::Rule->file()->name('META.yml')->in($tempdir))[0];
         my $ignore = join('|', qw(t inc xt));
@@ -335,8 +362,8 @@ code and to run it in a very heavily restricted user account.
 I welcome feedback about my code, including constructive criticism.
 Bug reports should be made using L<http://rt.cpan.org/> or by email,
 and should include the smallest possible chunk of code, along with
-any necessary XML data, which demonstrates the bug.  Ideally, this
-will be in the form of a file which I can drop in to the module's
+any necessary data, which demonstrates the bug.  Ideally, this
+will be in the form of files which I can drop in to the module's
 test suite.
 
 =cut

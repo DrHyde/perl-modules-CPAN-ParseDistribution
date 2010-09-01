@@ -5,7 +5,7 @@ use warnings;
 use CPAN::ParseDistribution;
 use Data::Dumper;
 
-my $c = CPAN::ParseDistribution->new(shift);
+my $c = CPAN::ParseDistribution->new(@ARGV);
 
 print "Distribution: ".$c->dist()." version ".$c->distversion()."\n\n";
 print "This is a developer-only release.\n\n" if($c->isdevversion());
@@ -20,9 +20,10 @@ dumpcpandist - show some details for a distribution from the CPAN
 
 =head1 SYNOPSIS
 
-dumpcpandist $filename
+dumpcpandist $filename [use_tar => ...]
 
-Where $filename is a tarball or zipfile from the CPAN
+Where $filename is a tarball or zipfile from the CPAN.  The arguments
+are the same as CPAN::ParseDistribution's C<new()> method.
 
 =head1 SEE ALSO
 
