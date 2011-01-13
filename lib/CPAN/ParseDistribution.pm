@@ -218,7 +218,8 @@ sub _parse_version_safely {
 
 Returns true or false depending on whether this is a developer-only
 or trial release of a distribution.  This is determined by looking for
-an underscore in the distribution version.
+an underscore in the distribution version or the string '-TRIAL' at the
+end of the distribution version.
 
 =cut
 
