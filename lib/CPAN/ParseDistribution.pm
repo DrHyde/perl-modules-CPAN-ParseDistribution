@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -224,7 +224,7 @@ an underscore in the distribution version.
 
 sub isdevversion {
     my $self = shift;
-    return 1 if($self->distversion() =~ /_/);
+    return 1 if($self->distversion() =~ /(_|-TRIAL$)/);
     return 0;
 }
 
@@ -376,7 +376,7 @@ L<dumpcpandist>
 
 =head1 AUTHOR, COPYRIGHT and LICENCE
 
-Copyright 2009-2010 David Cantrell E<lt>david@cantrell.org.ukE<gt>
+Copyright 2009-2011 David Cantrell E<lt>david@cantrell.org.ukE<gt>
 
 Contains code originally from the PAUSE by Andreas Koenig.
 

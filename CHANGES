@@ -1,3 +1,5 @@
+1.3    2011-01-13    recognize -TRIAL versions in isdevversion()
+
 1.2    2010-09-01    Add the use_tar argument
 
 1.11   2010-05-15    version.pm broke qv() sometime between 0.74 and 0.82,
