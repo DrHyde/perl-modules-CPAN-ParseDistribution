@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.3';
+$VERSION = '1.4';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -297,7 +297,7 @@ sub modules {
             my $pm = $_;
             $pm !~ m{^\Q$tempdir\E/[^/]+/($ignore)} &&
             !grep { $pm =~ m{^\Q$tempdir\E/[^/]+/$_$} } (keys %ignorefiles)
-        } File::Find::Rule->file()->name('*.pm')->in($tempdir);
+        } File::Find::Rule->file()->name('*.pm', '*.pm.PL')->in($tempdir);
         foreach my $PM (@PMs) {
             local $/ = undef;
             my $version = _parse_version_safely($PM);

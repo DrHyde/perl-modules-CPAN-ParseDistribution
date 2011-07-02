@@ -4,7 +4,7 @@ use warnings;
 my @args;
 
 use Test::More tests => do {
-  my $tests = 37;
+  my $tests = 38;
   @args = ([]);
 
   local $ENV{AUTHOR_TESTING} = 1
@@ -67,8 +67,16 @@ foreach my $args (@args) {
   $archive = CPAN::ParseDistribution->new('t/gooddists/Class-CanBeA-1.2.1-TRIAL.tar.gz', @{$args});
   ok($archive->isdevversion(), "Class-CanBeA-1.2.1-TRIAL.tar.gz: -TRIAL in dist version implies dev release");
   is($archive->distversion(), '1.2.1-TRIAL', "Class-CanBeA-1.2.1-TRIAL.tar.gz: distversion is 1.2.1-TRIAL");
+
+  $archive = CPAN::ParseDistribution->new('t/gooddists/common-sense-3.4.tar.gz', @{$args});
+  is_deeply(
+      $archive->modules(),
+      { 'common::sense' => 3.4 },
+      "common-sense-3.4.tar.gz: module is stored as sense.pm.PL"
+  );
+
   
-  print "# Pay attention to MTEA.yml ...\n";
+  print "# Pay attention to META.yml ...\n";
   $archive = CPAN::ParseDistribution->new('t/metadists/Devel-Backtrace-0.11.tar.gz', @{$args});
   is_deeply(
       $archive->modules(),

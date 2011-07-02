@@ -38,3 +38,4 @@ bin/dumpcpandist
 t/metadists/Carp-REPL-0.14.tar.gz
 t/metadists/Net-FSP-0.16.tar.gz
 t/gooddists/Class-CanBeA-1.2.1-TRIAL.tar.gz
+t/gooddists/common-sense-3.4.tar.gz
