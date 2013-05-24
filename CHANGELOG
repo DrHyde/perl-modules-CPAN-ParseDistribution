@@ -1,3 +1,7 @@
+1.5    2013-05-25    Safe.pm is now incompatible with signals, so use
+                       Parallel::ForkManager are Dark Magic to time
+                       out the Safe compartment
+
 1.4    2011-07-02    recognize modules stored as blah.pm.PL
 
 1.3    2011-01-13    recognize -TRIAL versions in isdevversion()
