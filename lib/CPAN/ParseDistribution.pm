@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -16,8 +16,7 @@ use Archive::Tar;
 use Archive::Zip;
 use YAML qw(LoadFile);
 use Safe;
-# safe to load, load now because it's commonly used for $VERSION
-# use version;
+use Parallel::ForkManager;
 
 $Archive::Tar::DO_NOT_USE_PREFIX = 1;
 $Archive::Tar::CHMOD = 0;
@@ -183,35 +182,43 @@ sub _parse_version_safely {
                     $_
                 }; \$$var
             };
-            eval {
-                local $SIG{ALRM} = sub { die("Safe compartment timed out\n"); };
-                alarm(5); # Safe compartment can't turn this off
-                $result = $c->reval($eval);
-                alarm(0);
-                die($@) if($@);
+
+            my $fork_manager = Parallel::ForkManager->new(1);
+
+            # to retrieve data returned from child
+            $fork_manager->run_on_finish(sub { $result = $_[-1]; });
+
+            # $calls counter is because the sub gets run immediately by wait_all_children,
+            # and then five seconds later. We want to kill on the second one.
+            my($calls, $timed_out, $pid) = (0, 0);
+            $fork_manager->run_on_wait(sub { if($calls++) { $timed_out = 1; kill(15, $pid) } }, 5);
+
+            $pid = $fork_manager->start() || do {
+                my $v = eval { $c->reval($eval) };
+                if($@) { $result = { error => $@ }; }
+                 else { $result = { result => $v }; }
+                $fork_manager->finish(0, $result);
             };
+            $fork_manager->wait_all_children();
+            $result->{error} = 'Safe compartment timed out' if($timed_out);
         };
         # stuff that's my fault because of the Safe compartment
-        # warn($eval) if($@);
-        if($@ =~ /trapped by operation mask|safe compartment timed out/i) {
-            warn("Unsafe code in \$VERSION\n$@\n$parsefile\n$eval");
+        if($result->{error} && $result->{error} =~ /trapped by operation mask|safe compartment timed out/i) {
+            warn("Unsafe code in \$VERSION\n".$result->{error}."\n$parsefile\n$eval");
             $result = undef;
-        } elsif($@) {
+        } elsif($result->{error}) {
             warn "_parse_version_safely: ".Dumper({
                 eval => $eval,
                 line => $current_parsed_line,
                 file => $parsefile,
-                err => $@,
+                err  => $result->{error},
             });
         }
         last;
     }
     close $fh;
 
-    # # version.pm objects come out as Safe::...::version objects,
-    # # which breaks weirdly
-    # bless($result, 'version') if(ref($result) =~ /::version$/);
-    return $result;
+    return exists($result->{result}) ? $result->{result} : undef;
 }
 
 =head2 isdevversion

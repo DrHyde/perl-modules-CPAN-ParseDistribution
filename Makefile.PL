@@ -1,4 +1,6 @@
 use ExtUtils::MakeMaker;
+use strict;
+use warnings;
 WriteMakefile(
     NAME         => 'CPAN::ParseDistribution',
     META_MERGE => {
@@ -15,11 +17,10 @@ WriteMakefile(
         'YAML' => 0.60,
         'File::Temp' => 0,
         'File::Path' => 0,
+        'Parallel::ForkManager' => 1.03,
         # 'version'    => 0,
     },
     EXE_FILES => [qw(
         bin/dumpcpandist
     )],
 );
-use strict;
-use warnings;
