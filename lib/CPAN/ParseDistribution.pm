@@ -188,10 +188,10 @@ sub _parse_version_safely {
             # to retrieve data returned from child
             $fork_manager->run_on_finish(sub { $result = $_[-1]; });
 
-            # $calls counter is because the sub gets run immediately by wait_all_children,
-            # and then five seconds later. We want to kill on the second one.
-            my($calls, $timed_out, $pid) = (0, 0);
-            $fork_manager->run_on_wait(sub { if($calls++) { $timed_out = 1; kill(15, $pid) } }, 5);
+            # checking time instead of saying run_on_wait(..., 5) if because of
+            # differences between 5.8.x and 5.18 (god knows when the difference came in)
+            my($start_time, $timed_out, $pid) = (time(), 0);
+            $fork_manager->run_on_wait(sub { if(time() - $start_time >= 5) { $timed_out = 1; kill(15, $pid) } }, 0.01);
 
             $pid = $fork_manager->start() || do {
                 my $v = eval { $c->reval($eval) };
