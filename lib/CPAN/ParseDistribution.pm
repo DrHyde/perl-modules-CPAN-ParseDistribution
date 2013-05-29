@@ -209,6 +209,10 @@ sub _run_safely {
     if(os_is('Unix')) {
         eval 'use CPAN::ParseDistribution::Unix';
 	return CPAN::ParseDistribution::Unix->_run(@_);
+    } elsif(os_is('MicrosoftWindows')) {
+	# FIXME
+        eval 'use CPAN::ParseDistribution::Unix';
+	return CPAN::ParseDistribution::Unix->_run(@_);
     }
 }
 
