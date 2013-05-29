@@ -6,6 +6,7 @@ Makefile.PL
 TODO
 README
 lib/CPAN/ParseDistribution.pm
+lib/CPAN/ParseDistribution/Unix.pm
 t/fileindexer.t
 t/metadists/Devel-Backtrace-0.11.tar.gz
 t/metadists/Module-Extract-VERSION-0.13.tar.gz
