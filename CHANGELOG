@@ -1,3 +1,5 @@
+1.51   2013-06-07    Warn about Windows not being fully supported
+
 1.5    2013-05-25    Safe.pm is now incompatible with signals, so use
                        Parallel::ForkManager are Dark Magic to time
                        out the Safe compartment

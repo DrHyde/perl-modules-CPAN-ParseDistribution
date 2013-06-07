@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Devel::CheckOS qw(os_is);
 
 my @args;
 
@@ -144,9 +145,17 @@ foreach my $args (@args) {
             'Bad::UseVersionQv' => '0.0.3'
         }, 'Bad-UseVersion-123.456.tar.gz: use version; $VERSION = qv(...) works'
     );
-    $archive = CPAN::ParseDistribution->new('t/dodgydists/Acme-BadExample-1.01.tar.gz', @{$args});
-    is_deeply( $archive->modules(), { 'Acme::BadExample' => undef },
-        "Acme-BadExample-1.01.tar.gz: doesn't crash :-)");
+    SKIP: {
+        skip "This test crashes on Windows, see the LIMITATIONS section of the doco", 1 if(
+            os_is('MicrosoftWindows')
+        );
+        $archive = CPAN::ParseDistribution->new('t/dodgydists/Acme-BadExample-1.01.tar.gz', @{$args});
+        is_deeply(
+            $archive->modules(),
+            { 'Acme::BadExample' => undef },
+            "Acme-BadExample-1.01.tar.gz: doesn't crash :-)"
+        );
+    }
   }
   
   print "# Check that we ignore obviously silly files\n";

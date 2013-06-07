@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.5';
+$VERSION = '1.51';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -184,7 +184,7 @@ sub _parse_version_safely {
                 }; \$$var
             };
 
-	    $result = _run_safely($c, $eval);
+            $result = _run_safely($c, $eval);
         };
         # stuff that's my fault because of the Safe compartment
         if($result->{error} && $result->{error} =~ /trapped by operation mask|safe compartment timed out/i) {
@@ -208,11 +208,13 @@ sub _parse_version_safely {
 sub _run_safely {
     if(os_is('Unix')) {
         eval 'use CPAN::ParseDistribution::Unix';
-	return CPAN::ParseDistribution::Unix->_run(@_);
+        return CPAN::ParseDistribution::Unix->_run(@_);
     } elsif(os_is('MicrosoftWindows')) {
-	# FIXME
+        # FIXME once someone supplies CPAN::ParseDistribution::Windows
+        warn("Windows is not fully supported by CPAN::ParseDistribution\n");
+        warn("See the LIMITATIONS section in the documentation\n");
         eval 'use CPAN::ParseDistribution::Unix';
-	return CPAN::ParseDistribution::Unix->_run(@_);
+        return CPAN::ParseDistribution::Unix->_run(@_);
     }
 }
 
@@ -363,11 +365,16 @@ code and to run it in a very heavily restricted user account.
 =head1 LIMITATIONS, BUGS and FEEDBACK
 
 I welcome feedback about my code, including constructive criticism.
-Bug reports should be made using L<http://rt.cpan.org/> or by email,
+Bug reports should be made using L<Github Issues|https://github.com/DrHyde/perl-modules-CPAN-ParseDistribution/issues>
 and should include the smallest possible chunk of code, along with
 any necessary data, which demonstrates the bug.  Ideally, this
 will be in the form of files which I can drop in to the module's
 test suite.
+
+There is a known problem with parsing some pathological distributions
+on Windows, where CPAN::ParseDistribution may either hang or crash. This
+is because Windows doesn't properly support fork()ing and signals. I can
+not fix this, but welcome patches with tests.
 
 =cut
 
