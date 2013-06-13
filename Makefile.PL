@@ -5,6 +5,7 @@ WriteMakefile(
     NAME         => 'CPAN::ParseDistribution',
     META_MERGE => {
         resources => {
+            bugtracker => 'https://github.com/DrHyde/perl-modules-CPAN-ParseDistribution/issues',
             repository => 'https://github.com/DrHyde/perl-modules-CPAN-ParseDistribution',
         }
     },
