@@ -3,6 +3,16 @@ package CPAN::ParseDistribution::Unix;
 use strict;
 use warnings;
 
+=head1 NAME
+
+CPAN::ParseDistribution::Unix
+
+=head1 DESCRIPTION
+
+Unix-specific functionality
+
+=cut
+
 sub _run {
     my(undef, $safe_compartment, $code) = @_;
     my $result;

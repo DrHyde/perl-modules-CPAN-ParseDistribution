@@ -1,3 +1,6 @@
+1.52   2013-06-13    Make tests work even if Test::Pod::Coverage isn't
+                       available
+
 1.51   2013-06-07    Warn about Windows not being fully supported
 
 1.5    2013-05-25    Safe.pm is now incompatible with signals, so use
