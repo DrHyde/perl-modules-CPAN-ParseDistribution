@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.52';
+$VERSION = '1.53';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);

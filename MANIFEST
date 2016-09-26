@@ -41,3 +41,5 @@ t/metadists/Net-FSP-0.16.tar.gz
 t/gooddists/Class-CanBeA-1.2.1-TRIAL.tar.gz
 t/gooddists/common-sense-3.4.tar.gz
 MANIFEST.SKIP
+t/metadists/IPC-Run3-0.044.tar.gz
+t/metadists/IPC-Run3-0.045.tar.gz
