@@ -264,10 +264,10 @@ sub modules {
                 if(exists($yaml->{no_index}->{directory})) {
                     if(eval { @{$yaml->{no_index}->{directory}} }) {
                         $ignore = join('|', $ignore,
-                            @{$yaml->{no_index}->{directory}}
+                            map { "$_/" } @{$yaml->{no_index}->{directory}}
                         );
                     } elsif(!ref($yaml->{no_index}->{directory})) {
-                         $ignore .= '|'.$yaml->{no_index}->{directory}
+                         $ignore .= '|'.$yaml->{no_index}->{directory}.'/'
                     }
                 }
                 if(exists($yaml->{no_index}->{file})) {
