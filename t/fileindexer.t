@@ -118,6 +118,27 @@ foreach my $args (@args) {
       },
       'Net-FSP-0.16.tar.gz: META.yml/no_index/namespace ARRAY'
   );
+
+  $archive = CPAN::ParseDistribution->new('t/metadists/IPC-Run3-0.044.tar.gz', @{$args});
+  is_deeply(
+      $archive->modules(),
+      {
+          'IPC::Run3' => '0.044',
+          'IPC::Run3::ProfPP' => '0.044',
+          'IPC::Run3::ProfArrayBuffer' => '0.044',
+          'IPC::Run3::ProfLogger' => '0.044',
+          'IPC::Run3::ProfReporter' => '0.044',
+          'IPC::Run3::ProfLogReader' => '0.044'
+      },
+      'IPC-Run3-0.044.tar.gz: META.yml/no_index/dir is bogus, ignore'
+  );
+  $archive = CPAN::ParseDistribution->new('t/metadists/IPC-Run3-0.045.tar.gz', @{$args});
+  is_deeply(
+      $archive->modules(),
+      { 'IPC::Run3' => '0.045' },
+      'IPC-Run3-0.045.tar.gz: most files are hidden in this version'
+  );
+
   $archive = CPAN::ParseDistribution->new('t/metadists/DBD-SQLite-Amalgamation-3.6.1.2.tar.gz', @{$args});
   
   print "# miscellaneous errors\n";
