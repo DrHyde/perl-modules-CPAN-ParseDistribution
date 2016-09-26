@@ -5,7 +5,7 @@ use Devel::CheckOS qw(os_is);
 my @args;
 
 use Test::More tests => do {
-  my $tests = 38;
+  my $tests = 40;
   @args = ([]);
 
   local $ENV{AUTHOR_TESTING} = 1
