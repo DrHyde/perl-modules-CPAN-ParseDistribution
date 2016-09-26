@@ -139,8 +139,6 @@ foreach my $args (@args) {
       'IPC-Run3-0.045.tar.gz: most files are hidden in this version'
   );
 
-  $archive = CPAN::ParseDistribution->new('t/metadists/DBD-SQLite-Amalgamation-3.6.1.2.tar.gz', @{$args});
-  
   print "# miscellaneous errors\n";
   $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Permissions-123.456.tar.gz', @{$args});
   is_deeply($archive->modules(), { 'Bad::Permissions' => 123.456}, "Bad-Permissions-123.456.tar.gz: bad perms handled OK");
