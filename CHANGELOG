@@ -1,3 +1,5 @@
+1.54   2016-09-27    Clean up some nasty old code, no functional changes
+
 1.53   2016-09-26    Fix handling of no_index/directory
 
 1.52   2013-06-13    Make tests work even if Test::Pod::Coverage isn't

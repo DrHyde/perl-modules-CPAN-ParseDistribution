@@ -5,7 +5,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = '1.53';
+$VERSION = '1.54';
 
 use Cwd qw(getcwd abs_path);
 use File::Temp qw(tempdir);
@@ -257,12 +257,13 @@ sub modules {
         if($meta && -e $meta) {
             my $yaml = eval { LoadFile($meta); };
             if(!$@ &&
-                UNIVERSAL::isa($yaml, 'HASH') &&
+                # can we hash-deref this thing?
+		ref($yaml) eq 'HASH' && 
                 exists($yaml->{no_index}) &&
-                UNIVERSAL::isa($yaml->{no_index}, 'HASH')
+		ref($yaml->{no_index}) eq 'HASH'
             ) {
                 if(exists($yaml->{no_index}->{directory})) {
-                    if(eval { @{$yaml->{no_index}->{directory}} }) {
+                    if(ref($yaml->{no_index}->{directory}) eq 'ARRAY') {
                         $ignore = join('|', $ignore,
                             map { "$_/" } @{$yaml->{no_index}->{directory}}
                         );
@@ -271,7 +272,7 @@ sub modules {
                     }
                 }
                 if(exists($yaml->{no_index}->{file})) {
-                    if(eval { @{$yaml->{no_index}->{file}} }) {
+                    if(ref($yaml->{no_index}->{file}) eq 'ARRAY') {
                         %ignorefiles = map { $_, 1 }
                             @{$yaml->{no_index}->{file}};
                     } elsif(!ref($yaml->{no_index}->{file})) {
@@ -279,7 +280,7 @@ sub modules {
                     }
                 }
                 if(exists($yaml->{no_index}->{package})) {
-                    if(eval { @{$yaml->{no_index}->{package}} }) {
+                    if(ref($yaml->{no_index}->{package}) eq 'ARRAY') {
                         %ignorepackages = map { $_, 1 }
                             @{$yaml->{no_index}->{package}};
                     } elsif(!ref($yaml->{no_index}->{package})) {
@@ -287,7 +288,7 @@ sub modules {
                     }
                 }
                 if(exists($yaml->{no_index}->{namespace})) {
-                    if(eval { @{$yaml->{no_index}->{namespace}} }) {
+                    if(ref($yaml->{no_index}->{namespace}) eq 'ARRAY') {
                         %ignorenamespaces = map { $_, 1 }
                             @{$yaml->{no_index}->{namespace}};
                     } elsif(!ref($yaml->{no_index}->{namespace})) {
