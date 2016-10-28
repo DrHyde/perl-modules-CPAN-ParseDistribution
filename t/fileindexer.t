@@ -2,10 +2,14 @@ use strict;
 use warnings;
 use Devel::CheckOS qw(os_is);
 
-my @args;
+local $SIG{__WARN__} = sub { die(@_) };
 
+my @args;
+ 
+# unfortunately we need to tell it up front how many tests, and can't
+# therefore use done_testing, because of forking. I think.
 use Test::More tests => do {
-  my $tests = 40;
+  my $tests = 42;
   @args = ([]);
 
   local $ENV{AUTHOR_TESTING} = 1
@@ -15,7 +19,7 @@ use Test::More tests => do {
     $tests *= 2;
     push @args, [use_tar => 'tar'];
   } else {
-    print STDERR "no AUTHOR_TESTING, skipping a bunch of tests\n";
+    warn "no AUTHOR_TESTING, skipping a bunch of tests\n";
   }
   $tests;
 };
@@ -25,7 +29,7 @@ use File::Find::Rule;
 use Config;
 
 foreach my $args (@args) {
-  print "# can we read all the different types of file?\n";
+  note "can we read all the different types of file?";
   foreach my $archive (File::Find::Rule->file()->name('XML-Tiny-DOM-1.0*')->in('t/gooddists')) {
       SKIP: {
           skip "bzip2 not available", 1 if(
@@ -43,7 +47,7 @@ foreach my $args (@args) {
       }
   }
   
-  print "# make sure all the methods work on a good distro\n";
+  note "make sure all the methods work on a good distro";
   my $archive = CPAN::ParseDistribution->new('t/gooddists/Class-CanBeA-1.2.tar.gz', @{$args});
   ok($archive->dist() eq 'Class-CanBeA', "Class-CanBeA-1.2.tar.gz: dist() works");
   ok($archive->distversion() eq '1.2', "Class-CanBeA-1.2.tar.gz: distversion() works");
@@ -77,7 +81,7 @@ foreach my $args (@args) {
   );
 
   
-  print "# Pay attention to META.yml ...\n";
+  note "Pay attention to META.yml ...";
   $archive = CPAN::ParseDistribution->new('t/metadists/Devel-Backtrace-0.11.tar.gz', @{$args});
   is_deeply(
       $archive->modules(),
@@ -139,23 +143,24 @@ foreach my $args (@args) {
       'IPC-Run3-0.045.tar.gz: most files are hidden in this version'
   );
 
-  print "# miscellaneous errors\n";
+  note "miscellaneous errors";
   $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Permissions-123.456.tar.gz', @{$args});
   is_deeply($archive->modules(), { 'Bad::Permissions' => 123.456}, "Bad-Permissions-123.456.tar.gz: bad perms handled OK");
   $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-UseVars-123.456.tar.gz', @{$args});
   is_deeply($archive->modules(), { 'Bad::UseVars' => 789}, "Bad-UseVars-123.456.tar.gz: 'use vars ...; \$VERSION =' handled OK");
   
-  print "# check that package\\nFoo is not indexed\n";
+  note "check that package\\nFoo is not indexed";
   $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-SplitPackage-234.567.tar.gz', @{$args});
   is_deeply($archive->modules(), { 'NotSplit' => 234.567 }, 'Bad-SplitPackage-234.567.tar.gz: package\nFoo; is not indexed');
   
-  print "# various broken \$VERSIONs\n";
-  { local $SIG{__WARN__} = sub {};
+  note "various broken \$VERSIONs";
+  {
     $archive = CPAN::ParseDistribution->new('t/dodgydists/Foo-123.456.tar.gz', @{$args});
     is_deeply($archive->modules(), { 'Foo' => undef }, "Foo-123.456.tar.gz: Broken version == undef");
   
     $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Backticks-123.456.tar.gz', @{$args});
     is_deeply($archive->modules(), { 'Bad::Unsafe' => undef }, 'Bad-Backticks-123.456.tar.gz: unsafe `$VERSION` isn\'t executed');
+
     $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-UseVersion-123.456.tar.gz', @{$args});
     is_deeply(
         $archive->modules(),
@@ -164,20 +169,28 @@ foreach my $args (@args) {
             'Bad::UseVersionQv' => '0.0.3'
         }, 'Bad-UseVersion-123.456.tar.gz: use version; $VERSION = qv(...) works'
     );
+
+    $archive = CPAN::ParseDistribution->new('t/dodgydists/Bad-Syntax-123.456.tar.gz', @{$args});
+    is_deeply($archive->modules(), { 'Bad::Syntax' => undef }, 'Bad-Syntax-123.456.tar.gz: $VERSION = this is a syntax error; works');
+
     SKIP: {
         skip "This test crashes on Windows, see the LIMITATIONS section of the doco", 1 if(
             os_is('MicrosoftWindows')
         );
+        my $warning;
+        local $SIG{__WARN__} = sub { $warning = join('', @_) };
         $archive = CPAN::ParseDistribution->new('t/dodgydists/Acme-BadExample-1.01.tar.gz', @{$args});
         is_deeply(
             $archive->modules(),
             { 'Acme::BadExample' => undef },
             "Acme-BadExample-1.01.tar.gz: doesn't crash :-)"
-        );
+        ); 
+        ok($warning =~ /Unsafe code in \$VERSION.*Safe compartment timed out/s, "that generated a warning:\n$warning");
+
     }
   }
   
-  print "# Check that we ignore obviously silly files\n";
+  note "Check that we ignore obviously silly files";
   eval { CPAN::ParseDistribution->new('t/baddists/Foo-123.456.ppm.zip', @{$args}) };
   ok($@ =~ /looks like a ppm/i, "Correctly fail on a PPM");
   eval { CPAN::ParseDistribution->new('t/non-existent-file', @{$args}) };

@@ -30,11 +30,8 @@ sub _run {
 	}
     }, 0.01);
 
-    $pid = $fork_manager->start() || do {
-        my $v = eval { $safe_compartment->reval($code) };
-        if($@) { $result = { error => $@ }; }
-         else { $result = { result => $v }; }
-        $fork_manager->finish(0, $result);
+    unless($pid = $fork_manager->start()) { 
+        $fork_manager->finish(0, { result => eval { $safe_compartment->reval($code) || undef } });
     };
     $fork_manager->wait_all_children();
     $result->{error} = 'Safe compartment timed out' if($timed_out);
