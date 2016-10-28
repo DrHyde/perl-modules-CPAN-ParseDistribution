@@ -9,14 +9,14 @@ my @args;
 # unfortunately we need to tell it up front how many tests, and can't
 # therefore use done_testing, because of forking. I think.
 use Test::More tests => do {
-  my $tests = 42;
+  my $tests = 47;
   @args = ([]);
 
   local $ENV{AUTHOR_TESTING} = 1
     if($ENV{AUTOMATED_TESTING} && `tar --version` =~ /gnu/i);
 
   if($ENV{AUTHOR_TESTING}) {
-    $tests *= 2;
+    $tests = $tests * 2 - 1;
     push @args, [use_tar => 'tar'];
   } else {
     warn "no AUTHOR_TESTING, skipping a bunch of tests\n";
@@ -27,6 +27,9 @@ use Test::More tests => do {
 use CPAN::ParseDistribution;
 use File::Find::Rule;
 use Config;
+
+eval { CPAN::ParseDistribution->new() };
+is($@, "file parameter is mandatory\n", "file parameter is mandatory");
 
 foreach my $args (@args) {
   note "can we read all the different types of file?";
@@ -43,6 +46,22 @@ foreach my $args (@args) {
                   'XML::Tiny::DOM::Element' => '1.0'
               },
               "$archive: can read and find module versions"
+          );
+      }
+  }
+
+  note "do we do something appropriate for broken archives?";
+  foreach my $archive (File::Find::Rule->file()->name('Bad-File-*')->in('t/dodgydists')) {
+      SKIP: {
+          skip "bzip2 not available", 1 if(
+              $archive =~ /(bz2|tbz)$/ &&
+              !(grep { -x "$_/bzip2" } split($Config{path_sep}, $ENV{PATH}))
+          );
+          is_deeply(
+              CPAN::ParseDistribution->new($archive, @{$args})->modules(),
+              {
+              },
+              "$archive: returns nothing"
           );
       }
   }

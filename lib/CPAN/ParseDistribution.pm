@@ -99,7 +99,7 @@ sub _unarchive {
     my $tempdir = tempdir(TMPDIR => 1);
     chdir($tempdir);
     if($file =~ /\.zip$/i) {
-        my $zip = Archive::Zip->new($file);
+        my $zip = eval { Archive::Zip->new($file) };
         $zip->extractTree() if($zip);
     } elsif($file =~ /\.(tar(\.gz)?|tgz)$/i) {
         if($extra_params{use_tar}) {
@@ -108,18 +108,18 @@ sub _unarchive {
                 (($file =~ /gz$/) ? 'xzf' : 'xf'),
                 $file
             );
-            system("chmod -R u+r *"); # tar might preserve unreadable perms
+            system("chmod -R u+r ."); # tar might preserve unreadable perms
         } else {
-            my $tar = Archive::Tar->new($file, 1);
+            my $tar = eval { Archive::Tar->new($file, 1) };
             $tar->extract() if($tar);
         }
     } else {
         if($extra_params{use_tar}) {
             system( $extra_params{use_tar}, 'xjf', $file);
-            system("chmod -R u+r *");
+            system("chmod -R u+r .");
         } else {
             open(my $fh, '-|', qw(bzip2 -dc), $file) || die("Can't unbzip2\n");
-            my $tar = Archive::Tar->new($fh);
+            my $tar = eval { Archive::Tar->new($fh) };
             $tar->extract() if($tar);
         }
     }
@@ -133,7 +133,7 @@ sub _parse_version_safely {
     my $result;
     my $eval;
     local $/ = "\n";
-    open(my $fh, $parsefile) or die "Could not open '$parsefile': $!";
+    open(my $fh, $parsefile);
     my $inpod = 0;
     while (<$fh>) {
         $inpod = /^=(?!cut)/ ? 1 : /^=cut/ ? 0 : $inpod;
@@ -187,16 +187,9 @@ sub _parse_version_safely {
             $result = _run_safely($c, $eval);
         };
         # stuff that's my fault because of the Safe compartment
-        if($result->{error} && $result->{error} =~ /trapped by operation mask|safe compartment timed out/i) {
+        if($result->{error}) {
             warn("Unsafe code in \$VERSION\n".$result->{error}."\n$parsefile\n$eval");
             $result = undef;
-        } elsif($result->{error}) {
-            warn "_parse_version_safely: ".Dumper({
-                eval => $eval,
-                line => $current_parsed_line,
-                file => $parsefile,
-                err  => $result->{error},
-            });
         }
         last;
     }
@@ -254,7 +247,7 @@ sub modules {
         my %ignorefiles;
         my %ignorepackages;
         my %ignorenamespaces;
-        if($meta && -e $meta) {
+        if($meta) {
             my $yaml = eval { LoadFile($meta); };
             if(!$@ &&
                 # can we hash-deref this thing?
@@ -306,7 +299,7 @@ sub modules {
         foreach my $PM (@PMs) {
             local $/ = undef;
             my $version = _parse_version_safely($PM);
-            open(my $fh, $PM) || die("Can't read $PM\n");
+            open(my $fh, $PM);
             $PM = <$fh>;
             close($fh);
 
