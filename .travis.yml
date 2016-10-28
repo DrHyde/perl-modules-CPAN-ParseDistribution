@@ -12,7 +12,7 @@ perl:
 matrix:
   include:
     - perl: 5.20
-      env: COVERAGE=1
+      env: COVERAGE=1 AUTHOR_TESTING=1
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --auto
 sudo: false
