@@ -43,3 +43,8 @@ t/gooddists/common-sense-3.4.tar.gz
 MANIFEST.SKIP
 t/metadists/IPC-Run3-0.044.tar.gz
 t/metadists/IPC-Run3-0.045.tar.gz
+t/dodgydists/Bad-File-Tar-1.23.tar
+t/dodgydists/Bad-File-TarBz2-1.23.tar.bz2
+t/dodgydists/Bad-File-TarGz-1.23.tar.gz
+t/dodgydists/Bad-File-Zip-1.23.zip
+t/dodgydists/Bad-Syntax-123.456.tar.gz
