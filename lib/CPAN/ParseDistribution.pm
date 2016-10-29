@@ -18,6 +18,7 @@ use YAML qw(LoadFile);
 use Safe;
 use Parallel::ForkManager;
 use Devel::CheckOS qw(os_is);
+use Capture::Tiny qw(capture_stderr);
 
 $Archive::Tar::DO_NOT_USE_PREFIX = 1;
 $Archive::Tar::CHMOD = 0;
@@ -100,27 +101,29 @@ sub _unarchive {
     chdir($tempdir);
     if($file =~ /\.zip$/i) {
         my $zip = eval { Archive::Zip->new($file) };
-        $zip->extractTree() if($zip);
+        capture_stderr(sub {  $zip->extractTree() }) if($zip);
     } elsif($file =~ /\.(tar(\.gz)?|tgz)$/i) {
         if($extra_params{use_tar}) {
-            system(
+            capture_stderr(sub { system(
                 $extra_params{use_tar},
                 (($file =~ /gz$/) ? 'xzf' : 'xf'),
                 $file
-            );
+            ) });
             system("chmod -R u+r ."); # tar might preserve unreadable perms
         } else {
             my $tar = eval { Archive::Tar->new($file, 1) };
-            $tar->extract() if($tar);
+            capture_stderr(sub { $tar->extract() }) if($tar);
         }
     } else {
         if($extra_params{use_tar}) {
-            system( $extra_params{use_tar}, 'xjf', $file);
+            capture_stderr(sub { system( $extra_params{use_tar}, 'xjf', $file) });
             system("chmod -R u+r .");
         } else {
-            open(my $fh, '-|', qw(bzip2 -dc), $file) || die("Can't unbzip2\n");
-            my $tar = eval { Archive::Tar->new($fh) };
-            $tar->extract() if($tar);
+            capture_stderr(sub {
+                open(my $fh, '-|', qw(bzip2 -dc), $file) || die("Can't unbzip2\n");
+                my $tar = eval { Archive::Tar->new($fh) };
+                $tar->extract() if($tar);
+            });
         }
     }
     chdir($olddir);

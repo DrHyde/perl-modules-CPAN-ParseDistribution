@@ -20,6 +20,7 @@ WriteMakefile(
         'File::Path' => 0,
         'Parallel::ForkManager' => 1.03,
         'Devel::CheckOS'        => 0,
+        'Capture::Tiny'         => 0,
     },
     EXE_FILES => [qw(
         bin/dumpcpandist
