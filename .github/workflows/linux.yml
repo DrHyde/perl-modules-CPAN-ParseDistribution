@@ -21,6 +21,7 @@ jobs:
     needs: list
     strategy:
       matrix: ${{fromJson(needs.list.outputs.matrix)}}
+      max-parallel: 1
     name: Perl ${{ matrix.perl }}
     steps:
       - name: check out code
