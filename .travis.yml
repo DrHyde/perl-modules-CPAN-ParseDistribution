@@ -1,6 +1,15 @@
 language: perl
 matrix:
   include:
+    - perl: 5.8
+      env: AUTHOR_TESTING=1
+      dist: xenial
+    - perl: 5.10
+      env: AUTHOR_TESTING=1
+      dist: xenial
+    - perl: 5.12
+      env: AUTHOR_TESTING=1
+      dist: xenial
     - perl: 5.20
       env: COVERAGE=1 AUTHOR_TESTING=1
       dist: trusty
