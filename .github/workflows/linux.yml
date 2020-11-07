@@ -34,7 +34,6 @@ jobs:
       - name: run tests
         env:
           PERL_USE_UNSAFE_INC: 0
-          AUTHOR_TESTING: 1
         run: |
             perl -v
             cpanm ExtUtils::MakeMaker Test::Pod Test::Pod::Coverage || cat /home/runner/.cpanm/work/*/build.log
@@ -42,4 +41,4 @@ jobs:
             rm -rf /home/runner/.cpanm/work/*
             cpanm --installdeps . || cat /home/runner/.cpanm/work/*/build.log
             perl Makefile.PL
-            make test TEST_VERBOSE=1
+            AUTHOR_TESTING=1 make test TEST_VERBOSE=1
