@@ -13,6 +13,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AUTHOR_TESTING: 1
         run: |
-          cpanm --installdeps .
+          cpanm -v --installdeps .
           cpanm Devel::Cover::Report::Coveralls
           cover -test -report Coveralls
