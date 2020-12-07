@@ -11,8 +11,7 @@ jobs:
       - name: Run with coverage checking
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AUTHOR_TESTING: 1
         run: |
           cpanm -v --installdeps .
           cpanm Devel::Cover::Report::Coveralls
-          cover -test -report Coveralls
+          AUTHOR_TESTING=1 cover -test -report Coveralls
