@@ -3,7 +3,10 @@ use strict;
 use warnings;
 WriteMakefile(
     NAME         => 'CPAN::ParseDistribution',
-    META_MERGE => {
+    META_ADD => {
+        license => [qw(artistic_1 gpl_2)],
+},
+META_MERGE => {
         resources => {
             bugtracker => 'https://github.com/DrHyde/perl-modules-CPAN-ParseDistribution/issues',
             repository => 'https://github.com/DrHyde/perl-modules-CPAN-ParseDistribution',
